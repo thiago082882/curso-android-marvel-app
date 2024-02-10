@@ -1,7 +1,7 @@
 package com.example.marvelapp.framework.di
 
 import com.example.marvelapp.BuildConfig
-import com.thiago.core.data.network.interceptor.AuthorizationInterceptor
+import com.example.marvelapp.framework.network.interceptor.AuthorizationInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,7 +33,7 @@ object NetworkModule {
     }
 
     @Provides
-    fun provideAuthorizationInterceptor():AuthorizationInterceptor{
+    fun provideAuthorizationInterceptor(): AuthorizationInterceptor {
         return  AuthorizationInterceptor(
             publicKey =  BuildConfig.PUBLIC_KEY,
             privateKey = BuildConfig.PRIVATE_KEY,
