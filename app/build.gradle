@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+
 }
 
 apply plugin: 'kotlin-kapt'
@@ -15,6 +16,7 @@ def apikeyProperties = new Properties()
 apikeyProperties.load(new FileInputStream(apikeyPropertiesFile))
 
 android {
+    namespace "com.example.marvelapp"
     compileSdkVersion 33
 
     defaultConfig {
@@ -27,7 +29,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "PUBLIC_KEY", apikeyProperties['PUBLIC_KEY'])
         buildConfigField("String", "PRIVATE_KEY", apikeyProperties['PRIVATE_KEY'])
-        buildConfigField("String", "BASE_URL", '"http://gateway.marvel.com/v1/public/"')
+        buildConfigField("String", "BASE_URL", '"https://gateway.marvel.com/v1/public/"')
     }
 
     buildTypes {
@@ -38,6 +40,7 @@ android {
     }
     buildFeatures{
         viewBinding true
+        buildConfig true
     }
 }
 
