@@ -2,16 +2,14 @@ package com.example.marvelapp.framework.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.bumptech.glide.load.HttpException
 import com.example.marvelapp.framework.network.responses.DataWrapperResponse
 import com.example.marvelapp.framework.network.responses.toCharacterModel
-import com.thiago.core.data.repository.CharacterRemoteDataSource
+import com.thiago.core.data.repository.CharactersRemoteDataSource
 import com.thiago.core.domain.model.Character
-import java.io.IOException
 import kotlin.Exception
 
 class CharactersPagingSource(
-    private val remoteDataSource: CharacterRemoteDataSource<DataWrapperResponse>,
+    private val remoteDataSource: CharactersRemoteDataSource<DataWrapperResponse>,
     private val query: String
 ) : PagingSource<Int, Character>() {
 

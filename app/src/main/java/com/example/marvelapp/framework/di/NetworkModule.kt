@@ -7,10 +7,15 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Response
+import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.IOException
+import java.nio.charset.StandardCharsets
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -20,14 +25,36 @@ object NetworkModule {
 
     private const val TIMEOUT_SECONDS = 15L
 
+    // Interceptor customizado para logar request e response no Logcat
+    class LoggingInterceptor : Interceptor {
+        @Throws(IOException::class)
+        override fun intercept(chain: Interceptor.Chain): Response {
+            val request = chain.request()
+            android.util.Log.i("SimpleLog", "Request: ${request.method} ${request.url}")
+
+            val response = chain.proceed(request)
+
+            val responseBody = response.body
+            val source = responseBody?.source()
+            source?.request(Long.MAX_VALUE) // Buffer the entire body.
+            val buffer = source?.buffer
+
+            val charset = responseBody?.contentType()?.charset(StandardCharsets.UTF_8) ?: StandardCharsets.UTF_8
+            val bodyString = buffer?.clone()?.readString(charset) ?: "empty"
+
+            android.util.Log.i("SimpleLog", "Response body: $bodyString")
+
+            // Recria o corpo para que a resposta continue acessível para o app
+            val newResponseBody = ResponseBody.create(responseBody?.contentType(), bodyString)
+            return response.newBuilder().body(newResponseBody).build()
+        }
+    }
+
     @Provides
     fun provideLoggingInterceptor(): HttpLoggingInterceptor {
-        return HttpLoggingInterceptor().apply{
-            setLevel(
-                if (BuildConfig.DEBUG) {
-                    HttpLoggingInterceptor.Level.BODY
-                } else HttpLoggingInterceptor.Level.NONE
-            )
+        return HttpLoggingInterceptor().apply {
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+            else HttpLoggingInterceptor.Level.NONE
         }
     }
 
@@ -46,7 +73,8 @@ object NetworkModule {
         authorizationInterceptor: AuthorizationInterceptor
     ): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
+            .addInterceptor(LoggingInterceptor()) // Nosso interceptor customizado para log detalhado
+            .addInterceptor(loggingInterceptor)   // OkHttp LoggingInterceptor (log padrão)
             .addInterceptor(authorizationInterceptor)
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
